@@ -1,6 +1,9 @@
 import streamlit as st
 import requests
 from datetime import datetime as dt
+import pytz
+
+st.set_page_config(page_title="Where's My Bus", page_icon=":bus:")
 
 arrival_url = "http://datamall2.mytransport.sg/ltaodataservice/BusArrivalv2?BusStopCode="
 stop_url = "http://datamall2.mytransport.sg/ltaodataservice/BusStops"
@@ -8,6 +11,7 @@ headers = {
     "AccountKey": st.secrets["lta_token"]
 }
 TIMEOUT = (5, 15)
+sg_timezone = pytz.timezone("Asia/Singapore")
 
 response_dict = {
     "Load": {
@@ -85,7 +89,7 @@ def get_arrivals(bus_stop):
         data = response.json()
 
         results2 = read_response(data)
-        last_update = dt.now()
+        last_update = dt.now(sg_timezone)
     
         for service_no, details in results2.items():
             with st.expander(f"**{service_no}** in {details['ETA'][0]} mins"):
@@ -112,7 +116,7 @@ bus_stops = get_stops()
 st.title("Where's My Bus? :bus:")
 st.markdown("Stalk your bus, made possible by the [Land Transport Authority](https://datamall.lta.gov.sg/content/datamall/en.html) of Singapore.")
 my_stop = st.text_input("Which bus stop?", max_chars=5, key="my_stop")
-col1, col2 = st.columns([1, 5])
+col1, col2 = st.columns([1, 6])
 bus_stop_placeholder = st.empty()
 results_placeholder = st.empty()
 
