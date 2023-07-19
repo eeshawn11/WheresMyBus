@@ -85,6 +85,8 @@ def get_arrivals(bus_stop):
         data = response.json()
 
         results2 = read_response(data)
+        last_update = dt.now()
+    
         for service_no, details in results2.items():
             with st.expander(f"**{service_no}** in {details['ETA'][0]} mins"):
                 for bus in details["Buses"]:
@@ -96,27 +98,43 @@ def get_arrivals(bus_stop):
                         st.markdown("Oops, you just missed this bus.")
                     elif bus[0] > 0:
                         st.markdown(f"**{bus[0]}** mins. {bus[1]}")
+        
+        return last_update
     except requests.exceptions.HTTPError as e:
         print(e)
         st.error("Sorry, an error occurred. Please try again.")
     except requests.exceptions.JSONDecodeError as e:
         print(e)
-        st.error("Sorry, an error occurred. Please try again.")    
+        st.error("Sorry, an error occurred. Please try again.")
 
 bus_stops = get_stops()
 
 st.title("Where's My Bus? :bus:")
 st.markdown("Stalk your bus, made possible by the [Land Transport Authority](https://datamall.lta.gov.sg/content/datamall/en.html) of Singapore.")
 my_stop = st.text_input("Which bus stop?", max_chars=5, key="my_stop")
+col1, col2 = st.columns([1, 5])
+bus_stop_placeholder = st.empty()
 results_placeholder = st.empty()
 
-with results_placeholder.container():
-    if my_stop:
-        if my_stop.isdigit() and len(my_stop) == 5:
-            if my_stop in bus_stops:
-                st.header(f"{bus_stops[my_stop]} ({my_stop})")
-                get_arrivals(my_stop)
-            else:
-                st.error("Bus stop not found. Please try again.")
+if my_stop:
+    if my_stop.isdigit() and len(my_stop) == 5:
+        if my_stop in bus_stops:
+            bus_stop_placeholder.header(f"{bus_stops[my_stop]} ({my_stop})")
+            with results_placeholder.container():
+                last_update = get_arrivals(my_stop)
         else:
-            st.error("Please provide a 5 digit bus stop code.")
+            st.error("Bus stop not found. Please try again.")
+    else:
+        st.error("Please provide a 5 digit bus stop code.")
+
+with col1:
+    refresh = st.button("Refresh", type="primary")
+with col2:
+    try:
+        st.markdown(f"Last updated: {last_update.strftime('%d %b %Y, %H:%M:%S')}")
+    except:
+        st.markdown(f"Last updated: None")
+
+if refresh and my_stop:
+    with results_placeholder.container():
+        get_arrivals(my_stop)
