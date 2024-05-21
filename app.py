@@ -113,7 +113,7 @@ def check_trains():
                 affected_lines.append(segment["Line"])
 
         if affected_lines:
-            print(f"Train services disrupted along {join(', ', affected_lines)}.")
+            print(f"Train services disrupted along {','.join(affected_lines)}.")
             train_alerts_placeholder.warning(f"Train services disrupted along {join(', ', affected_lines)}.")
         else:
             print("Train services operating normally.")
