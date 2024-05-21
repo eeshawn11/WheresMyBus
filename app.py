@@ -114,7 +114,7 @@ def check_trains():
 
         if affected_lines:
             print(f"Train services disrupted along {','.join(affected_lines)}.")
-            train_alerts_placeholder.warning(f"Train services disrupted along {join(', ', affected_lines)}.")
+            train_alerts_placeholder.warning(f"Train services disrupted along {','.join(affected_lines)}.")
         else:
             print("Train services operating normally.")
     except requests.exceptions.HTTPError as e:
