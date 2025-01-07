@@ -124,6 +124,11 @@ def check_trains():
         print(e)
         st.error("Sorry, an error occurred. Please try again.")
 
+# Function to handle searching for bus stops by name
+def search_bus_stops(search_term):
+    search_results = {code: desc for code, desc in bus_stops.items() if search_term.lower() in desc.lower()}
+    return search_results
+
 # retrieve and store data from LTA DataMall
 bus_stops = get_stops()
 bus_routes = get_routes()
@@ -215,7 +220,37 @@ def get_arrivals(bus_stop):
 
 st.title("Where's My Bus? :bus:")
 st.markdown("Stalk your bus, made possible by the [Land Transport Authority](https://datamall.lta.gov.sg/content/datamall/en.html) of Singapore.")
-my_stop = st.text_input("Enter Bus Stop number:", max_chars=5, key="my_stop")
+# Search for bus stop by name
+search_term = st.text_input("Search for a bus stop by name:", key="search_term")
+if search_term:
+    search_results = search_bus_stops(search_term)
+    if search_results:
+        selected_stop = st.selectbox("Select a bus stop:", options=list(search_results.keys()), format_func=lambda x: f"{search_results[x]} ({x})")
+    else:
+        st.error("No bus stops found with that name. Please try again.")
+else:
+    selected_stop = None
+
+# Keep track of the last 3 searched bus stops
+if 'recent_stops' not in st.session_state:
+    st.session_state['recent_stops'] = []
+
+if selected_stop and selected_stop not in st.session_state['recent_stops']:
+    st.session_state['recent_stops'].append(selected_stop)
+    if len(st.session_state['recent_stops']) > 3:
+        st.session_state['recent_stops'].pop(0)
+
+# Display the last 3 searched bus stops
+if st.session_state['recent_stops']:
+    st.write("Recent Bus Stops:")
+    recent_stop = st.selectbox("Choose from recently searched:", options=st.session_state['recent_stops'], format_func=lambda x: f"{bus_stops[x]} ({x})")
+else:
+    recent_stop = None
+
+# Combine selected bus stop logic
+my_stop = selected_stop if selected_stop else recent_stop
+
+# my_stop = st.text_input("Enter Bus Stop number:", max_chars=5, key="my_stop")
 col1, col2 = st.columns([1, 6])
 train_alerts_placeholder = st.empty()
 bus_stop_placeholder = st.empty()
